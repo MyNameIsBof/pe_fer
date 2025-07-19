@@ -1,239 +1,176 @@
-import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { MainAPI } from "../MainAPI";
-import {
-  Button,
-  Col,
-  Container,
-  Image,
-  Pagination,
-  Row,
-  Table,
-} from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
-import { MdModeEdit } from "react-icons/md";
-import { FaTrashAlt } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { Button, Col, Container, Image, Row } from "react-bootstrap";
 
-// Component quản lý danh sách ArtTools, có phân trang, xoá, sửa
-export default function ArtTools() {
-  // URL API và danh sách art tools
-  const baseURL = `${MainAPI}`;
-  const [API, setAPI] = useState([]);
+export default function Detail() {
+  const { id } = useParams();
+  const baseURL = `${MainAPI}/${id}`;
+  const [API, setAPI] = useState({});
 
-  // Hàm lấy dữ liệu từ API, dùng useCallback để tránh tạo lại hàm khi baseURL không đổi
-  const fetchAPI = useCallback(() => {
-    fetch(baseURL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
+  useEffect(() => {
+    const fetchAPI = async () => {
+      try {
+        const response = await fetch(baseURL, {
+          method: "GET",
+          headers: {
+            "Content-type": "application/json",
+          },
+        });
         if (!response.ok) throw new Error("Network response was not ok");
-        return response.json();
-      })
-      .then((data) => setAPI(data))
-      .catch((error) => console.log(error));
+        const data = await response.json();
+        setAPI(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchAPI();
   }, [baseURL]);
 
-  // Gọi API khi component mount hoặc baseURL thay đổi
-  useEffect(() => {
-    fetchAPI();
-  }, [fetchAPI]);
-
-  // Hàm xoá art tool, xác nhận bằng window.confirm, sau đó gọi API DELETE và reload lại danh sách, hiện toast thông báo
-  const handleDelete = (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this item ?"
-    );
-    if (confirmed) {
-      fetch(`${baseURL}/${id}`, {
-        method: "DELETE",
-      }).then(() => {
-        toast.success("Delete successfully!!", {
-          position: "top-right",
-          autoClose: 2000,
-        });
-        fetchAPI();
-      });
-    }
-  };
-
-  // ============ PAGINATION ============
-  const numRowsPerPage = 5; // Số dòng mỗi trang
-  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-  const [paginatedData, setPaginatedData] = useState([]); // Data cho trang hiện tại
-
-  // Khi API hoặc trang hiện tại đổi, cập nhật dữ liệu trang hiện tại (sắp xếp giảm dần theo id)
-  useEffect(() => {
-    const sortedApi = [...API].sort((a, b) => b.id - a.id);
-    const start = (currentPage - 1) * numRowsPerPage;
-    const end = start + numRowsPerPage;
-    setPaginatedData(sortedApi.slice(start, end));
-  }, [API, currentPage]);
-
-  // Tính tổng số trang
-  const numPages = Math.ceil(API.length / numRowsPerPage);
-
-  // Xây dựng các nút chuyển trang cho Pagination
-  const paginationItems = [];
-  const addEllipsis = (key) =>
-    paginationItems.push(<Pagination.Ellipsis key={key} disabled />);
-
-  // Nếu số trang <= 8 thì hiện hết, nếu nhiều thì hiện số, dấu ... và trang đầu/cuối
-  if (numPages <= 8) {
-    paginationItems.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        disabled={currentPage === 1}
-      />
-    );
-    for (let i = 1; i <= numPages; i++) {
-      paginationItems.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentPage}
-          onClick={() => setCurrentPage(i)}
-        >
-          {i}
-        </Pagination.Item>
-      );
-    }
-  } else {
-    if (currentPage > 2) {
-      paginationItems.push(
-        <Pagination.Item key={1} onClick={() => setCurrentPage(1)}>
-          1
-        </Pagination.Item>
-      );
-      if (currentPage > 3) addEllipsis("ellipsis-prev");
-    }
-    const startPage = Math.max(1, currentPage - 1);
-    const endPage = Math.min(numPages, currentPage + 1);
-    for (let i = startPage; i <= endPage; i++) {
-      paginationItems.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentPage}
-          onClick={() => setCurrentPage(i)}
-        >
-          {i}
-        </Pagination.Item>
-      );
-    }
-    if (currentPage < numPages - 1) {
-      if (currentPage < numPages - 2) addEllipsis("ellipsis-next");
-      paginationItems.push(
-        <Pagination.Item
-          key={numPages}
-          onClick={() => setCurrentPage(numPages)}
-        >
-          {numPages}
-        </Pagination.Item>
-      );
-    }
-  }
-  // Nút Next cho phân trang
-  paginationItems.push(
-    <Pagination.Next
-      key="next"
-      onClick={() => setCurrentPage(Math.min(currentPage + 1, numPages))}
-      disabled={currentPage === numPages}
-    />
-  );
-
-  // Giao diện render
   return (
-    <div className="dashboard">
-      <Container fluid="lg">
-        {/* Nút thêm mới Art Tool */}
-        <Row className="justify-content-md-end">
-          <Col md={12}>
-            <Link to={"/add"}>
-              <Button
-                variant="primary"
-                className="btn-main-style"
-                style={{ width: "initial" }}
-              >
-                Add new Art Tools
-              </Button>
-            </Link>
-          </Col>
-        </Row>
-        {/* Bảng danh sách Art Tool */}
-        <Row
-          className="justify-content-md-center"
-          style={{ marginTop: "20px" }}
+    <div
+      style={{
+        minHeight: "calc(100vh - 56px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #f4f7fd 0%, #e5e5e5 100%)",
+        paddingTop: "30px",
+        paddingBottom: "30px",
+      }}
+    >
+      <Container>
+        <Link to={"/"} style={{ textDecoration: "none" }}>
+          <Button
+            variant="primary"
+            className="btn-main-style"
+            style={{
+              marginBottom: "24px",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(124,58,237,.11)",
+            }}
+          >
+            ← Back to Home
+          </Button>
+        </Link>
+        <div
+          style={{
+            border: "none",
+            borderRadius: "24px",
+            background: "white",
+            padding: "32px 24px",
+            boxShadow: "0 4px 24px rgba(124,58,237,.06)",
+            position: "relative",
+            minHeight: "480px",
+          }}
         >
-          <Col md={12}>
-            <Table striped bordered hover className="dashboard__table">
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Price</th>
-                  <th>Glass Surface</th>
-                  <th>Brand</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Render từng dòng, gồm nút sửa, xoá, icon glassSurface */}
-                {paginatedData.map((art) => (
-                  <tr key={art.id}>
-                    <td>{art.id}</td>
-                    <td className="image">
-                      <Link to={`/edit/${art.id}`}>
-                        <Image src={art.image} rounded width={100} />
-                      </Link>
-                    </td>
-                    <td>{art.artName}</td>
-                    <td>{art.price}</td>
-                    <td>
-                      {/* Nếu có glassSurface thì hiện dấu tích xanh, không thì dấu X đỏ (Font Awesome) */}
-                      {art.glassSurface ? (
-                        <i
-                          style={{ color: "green" }}
-                          className="fa-solid fa-check"
-                        ></i>
-                      ) : (
-                        <i
-                          style={{ color: "tomato" }}
-                          className="fa-solid fa-xmark"
-                        ></i>
-                      )}
-                    </td>
-                    <td>{art.brand}</td>
-                    <td>
-                      <div className="btn-wrapper">
-                        {/* Nút sửa */}
-                        <Link to={`/edit/${art.id}`}>
-                          <Button
-                            variant="primary"
-                            className="btn-main-style edit"
-                          >
-                            <MdModeEdit />
-                          </Button>
-                        </Link>
-                        {/* Nút xoá */}
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDelete(art.id)}
-                        >
-                          <FaTrashAlt />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-          {/* Phân trang */}
-          <Pagination id="pagination">{paginationItems}</Pagination>
-        </Row>
+          {API.glassSurface && (
+            <div className="ribbon ribbon-top-left">
+              <span>Glass Surface</span>
+            </div>
+          )}
+          <Row style={{ height: "100%" }}>
+            <Col
+              xs={12}
+              md={6}
+              className="d-flex align-items-center justify-content-center"
+              style={{ marginBottom: "16px", marginTop: "8px" }}
+            >
+              <Image
+                src={API.image}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "360px",
+                  objectFit: "cover",
+                  borderRadius: "16px",
+                  boxShadow: "0 6px 18px rgba(60,60,90,.07)",
+                  background: "#f9f9ff",
+                }}
+                alt={API.artName}
+              />
+            </Col>
+            <Col
+              xs={12}
+              md={6}
+              className="d-flex flex-column justify-content-center"
+              style={{ padding: "8px 20px" }}
+            >
+              <h2
+                style={{
+                  fontWeight: "700",
+                  color: "#7c3aed",
+                  marginBottom: "18px",
+                }}
+              >
+                {API.artName}
+              </h2>
+              <p
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  color: "#4f46e5",
+                  marginBottom: "12px",
+                }}
+              >
+                Giá: <span style={{ color: "#e11d48" }}>{API.price}</span>
+              </p>
+              <p style={{ fontWeight: "500", marginBottom: "10px" }}>
+                Hãng: <span style={{ color: "#3b82f6" }}>{API.brand}</span>
+              </p>
+              <p style={{ marginBottom: "10px", fontWeight: "500" }}>
+                Mô tả:{" "}
+                <span style={{ color: "#52525b" }}>{API.description}</span>
+              </p>
+              <p style={{ marginBottom: "10px", fontWeight: "500" }}>
+                Ưu đãi giới hạn:{" "}
+                {API.limitedTimeDeal > 0 ? (
+                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>
+                    -{API.limitedTimeDeal * 100}%
+                  </span>
+                ) : (
+                  <span style={{ color: "#b91c1c" }}>Không có ưu đãi</span>
+                )}
+              </p>
+              <div style={{ marginTop: "24px" }}>
+                <Link to={"/"} style={{ textDecoration: "none" }}>
+                  <Button
+                    variant="outline-primary"
+                    style={{ borderRadius: "8px" }}
+                  >
+                    Quay lại
+                  </Button>
+                </Link>
+              </div>
+            </Col>
+          </Row>
+        </div>
+        <style>{`
+          .ribbon {
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            position: absolute;
+            top: -6px;
+            left: -6px;
+          }
+          .ribbon span {
+            position: absolute;
+            display: block;
+            width: 160px;
+            padding: 8px 0;
+            background-color: #7c3aed;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.95rem;
+            text-align: center;
+            transform: rotate(-45deg);
+            box-shadow: 0 2px 6px rgba(124,58,237,0.12);
+            top: 24px;
+            left: -38px;
+            letter-spacing: 1px;
+          }
+        `}</style>
       </Container>
     </div>
   );
