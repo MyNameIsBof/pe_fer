@@ -8,60 +8,56 @@ export default function NavBar() {
     <Navbar
       expand="lg"
       className="bg-body-tertiary"
-      style={{ cssText: "background-color: #1376f8 !important;" }}
+      style={{ cssText: "background-color: #1376f8 !important" }}
     >
       <Container fluid>
-        <Navbar.Brand>
-          <Link
-            to="/"
-            style={{
-              color: "#fff",
-              fontWeight: "bold",
-              textDecoration: "none",
-            }}
-          >
-            Art tools
-          </Link>
-        </Navbar.Brand>
+        <Link
+          to="/"
+          style={{
+            padding: "0 10px",
+            margin: "0 10px",
+            color: "#fff",
+            fontWeight: "bold",
+            textDecoration: "none",
+          }}
+        >
+          Art tools
+        </Link>
+
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link>
-              <Link
-                to="/"
-                style={{
-                  color: "#fff",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
-              >
-                Home
-              </Link>
-            </Nav.Link>
-            <Nav.Link>
-              <Link
-                to="/art-tools"
-                style={{
-                  color: "#fff",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
-              >
-                Art Tools
-              </Link>
-            </Nav.Link>
-            <Nav.Link>
-              <Link
-                to="/contact"
-                style={{
-                  color: "#fff",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
-              >
-                Contact
-              </Link>
-            </Nav.Link>
+            <Link
+              to="/"
+              style={{
+                color: "#fff",
+                fontWeight: "bold",
+                textDecoration: "none",
+              }}
+            >
+              Home
+            </Link>
+            <Link
+              to="/khang"
+              style={{
+                color: "#fff",
+                fontWeight: "bold",
+                textDecoration: "none",
+              }}
+            >
+              Art Tools
+            </Link>
+
+            <Link
+              to="/contact"
+              style={{
+                color: "#fff",
+                fontWeight: "bold",
+                textDecoration: "none",
+              }}
+            >
+              Contact
+            </Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
